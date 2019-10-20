@@ -1,0 +1,13 @@
+plugins {
+	id 'java'
+	id 'groovy'
+}
+
+dependencies {
+	implementation project(':eventsourcing-core')
+
+	testImplementation 'org.codehaus.groovy:groovy:2.4.10'
+	testImplementation 'org.codehaus.groovy:groovy-sql:2.4.10'
+	testImplementation 'org.testng:testng:6.8.21'
+	testImplementation 'com.h2database:h2:1.4.190'
+}

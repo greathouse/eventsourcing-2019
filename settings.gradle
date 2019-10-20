@@ -1,0 +1,6 @@
+rootProject.name = 'eventsourcing'
+
+include (
+	'eventsourcing-core'
+	, 'eventsourcing-jdbc-event-store'
+)
