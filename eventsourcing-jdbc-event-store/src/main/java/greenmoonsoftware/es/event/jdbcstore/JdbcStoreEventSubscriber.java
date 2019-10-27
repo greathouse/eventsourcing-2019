@@ -32,6 +32,9 @@ public class JdbcStoreEventSubscriber implements EventSubscriber<Event> {
 
     @Override
     public void onEvent(Event event) {
+        if (!shouldHandle(event)) {
+            return ;
+        }
         String sql = "insert into " + configuration.getTablename() + " (id, aggregateId, eventType, eventDateTime, data) " +
                         "values (?,?,?,?,?)";
         try (Connection con = datasource.getConnection();
@@ -45,6 +48,10 @@ public class JdbcStoreEventSubscriber implements EventSubscriber<Event> {
         catch (Throwable t) {
             t.printStackTrace();
         }
+    }
+
+    protected boolean shouldHandle(Event event) {
+        return true;
     }
 
     private void prepareAndExecuteStatement(Event event, PreparedStatement ps) throws SQLException, IOException {
