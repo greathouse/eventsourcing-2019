@@ -3,6 +3,11 @@ plugins {
 	id 'groovy'
 }
 
+compileJava {
+	sourceCompatibility = 1.8
+	targetCompatibility = 1.8
+}
+
 dependencies {
 	implementation project(':eventsourcing-core')
 
