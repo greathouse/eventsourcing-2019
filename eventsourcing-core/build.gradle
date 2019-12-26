@@ -1,8 +1,113 @@
 plugins {
 	id 'java'
+	id 'maven-publish'
+	id 'signing'
 }
 
 compileJava {
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+	classifier = 'sources'
+	from sourceSets.main.allSource
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+	classifier = 'javadoc'
+	from javadoc.destinationDir
+}
+
+artifacts {
+	archives jar
+	archives sourcesJar
+	archives javadocJar
+}
+
+signing {
+	sign configurations.archives
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+			artifact sourcesJar
+			artifact javadocJar
+
+			pom.withXml {
+				def root = asNode()
+
+				// add all items necessary for maven central publication
+				root.children().last() + {
+					resolveStrategy = Closure.DELEGATE_FIRST
+
+					name 'Repo URL parser'
+					description project.description
+					url 'https://github.com/greathouse/eventsourcing-2019'
+					organization {
+						name 'Oblac'
+						url 'https://www.greenmoonsoftware.com'
+					}
+					issueManagement {
+						system 'GitHub'
+						url 'https://github.com/greathouse/eventsourcing-2019/issues'
+					}
+					licenses {
+						license {
+							name 'The New BSD License'
+							url 'https://github.com/igr/repo-url-parser/blob/master/LICENSE'
+							distribution 'repo'
+						}
+					}
+					scm {
+						url 'https://github.com/greathouse/eventsourcing-2019'
+						connection 'scm:git:git://github.com:greathouse/eventsourcing-2019.git'
+						developerConnection 'scm:git:ssh://git@github.com:greathouse/eventsourcing-2019.git'
+					}
+					developers {
+						developer {
+							id 'greathouse'
+							name 'Robert G. Greathouse'
+							email 'robert@greenmoonsoftware.com'
+							timezone 'CST'
+						}
+					}
+				}
+			}
+
+			pom.withXml {
+				def pomFile = file("${project.buildDir}/generated-pom.xml")
+				writeTo(pomFile)
+				def pomAscFile = signing.sign(pomFile).signatureFiles[0]
+				artifact(pomAscFile) {
+					classifier = null
+					extension = 'pom.asc'
+				}
+				pomFile.delete()
+			}
+
+			// sign the artifacts
+			project.tasks.signArchives.signatureFiles.each {
+				artifact(it) {
+					def matcher = it.file =~ /-(sources|javadoc|jre9)\.jar\.asc$/
+					if (matcher.find()) {
+						classifier = matcher.group(1)
+					} else {
+						classifier = null
+					}
+					extension = 'jar.asc'
+				}
+			}
+		}
+	}
+	repositories {
+		maven {
+			url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+			credentials {
+				username sonatypeUsername
+				password sonatypePassword
+			}
+		}
+	}
 }
