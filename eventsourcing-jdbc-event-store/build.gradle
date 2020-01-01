@@ -43,8 +43,8 @@ publishing {
 		mavenJava(MavenPublication) {
 			from components.java
 //			artifact jar
-//			artifact sourcesJar
-//			artifact javadocJar
+			artifact sourcesJar
+			artifact javadocJar
 
 			pom.withXml {
 				def root = asNode()
@@ -57,7 +57,7 @@ publishing {
 					description project.description
 					url 'https://github.com/greathouse/eventsourcing-2019'
 					organization {
-						name 'Oblac'
+						name 'Green Moon Software, LLC'
 						url 'https://www.greenmoonsoftware.com'
 					}
 					issueManagement {
