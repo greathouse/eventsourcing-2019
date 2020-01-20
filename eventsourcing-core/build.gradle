@@ -48,7 +48,7 @@ publishing {
 					url 'https://github.com/greathouse/eventsourcing-2019'
 					organization {
 						name 'Green Moon Software, LLC'
-						url 'https://www.greenmoonsoftware.com'
+						url 'http://www.greenmoonsoftware.com'
 					}
 					issueManagement {
 						system 'GitHub'
