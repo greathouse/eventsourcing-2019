@@ -21,6 +21,16 @@ public abstract class AbstractEvent implements Event {
     }
 
     @Override
+    public String toString() {
+        return "AbstractEvent{" +
+                "id=" + id +
+                ", aggregateId='" + aggregateId + '\'' +
+                ", type='" + type + '\'' +
+                ", eventDateTime=" + eventDateTime +
+                '}';
+    }
+
+    @Override
     public final UUID getId() {
         return id;
     }
