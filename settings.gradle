@@ -2,6 +2,7 @@ rootProject.name = 'eventsourcing'
 
 include (
 	'eventsourcing-core'
+		, 'eventsourcing-jackson'
 		, 'eventsourcing-jdbc-event-store'
 		, 'eventsourcing-samples:multiple-aggregate'
 )
