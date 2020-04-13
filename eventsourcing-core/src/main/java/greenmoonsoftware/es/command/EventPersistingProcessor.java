@@ -4,23 +4,33 @@ import greenmoonsoftware.es.Bus;
 import greenmoonsoftware.es.event.Aggregate;
 import greenmoonsoftware.es.event.Event;
 import greenmoonsoftware.es.event.EventSubscriber;
+import greenmoonsoftware.es.store.StorePersister;
 import greenmoonsoftware.es.store.StoreRetrieval;
 
 import java.util.Collection;
 
-@Deprecated
-public class Processor<T extends Aggregate> {
+public class EventPersistingProcessor<T extends Aggregate> {
     private final StoreRetrieval<T> store;
     private final Bus<Event, EventSubscriber> eventBus;
+    private final StorePersister persister;
 
-    public Processor(StoreRetrieval<T> store, Bus<Event, EventSubscriber> eventBus) {
+    public EventPersistingProcessor(
+            StoreRetrieval<T> store,
+            StorePersister persister,
+            Bus<Event, EventSubscriber> eventBus) {
         this.store = store;
         this.eventBus = eventBus;
+        this.persister = persister;
     }
 
     public void process(Command command) {
         Aggregate aggregate = store.retrieve(command.getAggregateId());
-        Collection<Event> newEvents = AggregateCommandApplier.apply(aggregate, command);
+        Collection<Event> newEvents = apply(command, aggregate);
+        newEvents.forEach(persister::persist);
         newEvents.forEach(eventBus::post);
+    }
+
+    private Collection<Event> apply(Command command, Aggregate aggregate) {
+        return AggregateCommandApplier.apply(aggregate, command);
     }
 }

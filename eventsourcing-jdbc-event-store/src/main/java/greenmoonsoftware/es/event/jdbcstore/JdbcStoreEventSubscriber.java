@@ -2,6 +2,7 @@ package greenmoonsoftware.es.event.jdbcstore;
 
 import greenmoonsoftware.es.event.Event;
 import greenmoonsoftware.es.event.EventSubscriber;
+import greenmoonsoftware.es.store.StorePersister;
 
 import javax.sql.DataSource;
 import java.io.*;
@@ -10,7 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-public class JdbcStoreEventSubscriber implements EventSubscriber<Event> {
+public class JdbcStoreEventSubscriber implements EventSubscriber<Event>, StorePersister {
     private final EventSerializer<Event> serilalizer;
     private DataSource datasource;
     private JdbcStoreConfiguration configuration;
@@ -32,6 +33,11 @@ public class JdbcStoreEventSubscriber implements EventSubscriber<Event> {
 
     @Override
     public void onEvent(Event event) {
+        persist(event);
+    }
+
+    @Override
+    public void persist(Event event) {
         if (!shouldHandle(event)) {
             return ;
         }
