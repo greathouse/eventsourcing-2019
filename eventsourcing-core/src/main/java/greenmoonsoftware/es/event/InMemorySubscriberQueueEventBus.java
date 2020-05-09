@@ -6,10 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class InMemorySubscriberQueueEventBus implements Bus<Event, EventSubscriber> {
     private final Map<EventSubscriber,BlockingQueue<Event>> subscriberToQueue = new HashMap<>();
     private final Map<EventSubscriber,Thread> subscriberToThread = new HashMap<>();
+    private final AtomicInteger threadCounter = new AtomicInteger(0);
 
     @Override
     public void post(Event payload) {
@@ -20,7 +22,7 @@ public class InMemorySubscriberQueueEventBus implements Bus<Event, EventSubscrib
     public Bus<Event, EventSubscriber> register(EventSubscriber subscriber) {
         LinkedBlockingQueue<Event> queue = new LinkedBlockingQueue<>();
         subscriberToQueue.put(subscriber, queue);
-        Thread t = new Thread(new EventSubscriberRunnable(subscriber, queue));
+        Thread t = new Thread(new EventSubscriberRunnable(subscriber, queue), "evtsub-" + threadCounter.getAndIncrement() + "-" + subscriber.getClass().getSimpleName());
         t.start();
         subscriberToThread.put(subscriber, t);
         return this;
