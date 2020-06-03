@@ -1,7 +1,9 @@
 package greenmoonsoftware.es.event.jdbcstore;
 
 import greenmoonsoftware.es.event.Aggregate;
+import greenmoonsoftware.es.event.Event;
 import greenmoonsoftware.es.event.EventList;
+import greenmoonsoftware.es.store.EventRetrieval;
 import greenmoonsoftware.es.store.StoreRetrieval;
 
 import javax.sql.DataSource;
@@ -10,11 +12,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
-public abstract class JdbcStoreQuery<T extends Aggregate> implements StoreRetrieval<T> {
+public abstract class JdbcStoreQuery<T extends Aggregate> implements StoreRetrieval<T>, EventRetrieval {
     private final EventSerializer serializer;
     private final DataSource datasource;
     private final JdbcStoreConfiguration configuration;
+    private final EventRetrieval eventRetrieval;
 
     public JdbcStoreQuery(
             JdbcStoreConfiguration config,
@@ -24,6 +28,7 @@ public abstract class JdbcStoreQuery<T extends Aggregate> implements StoreRetrie
         configuration = config;
         datasource = ds;
         serializer = s;
+        eventRetrieval = new JdbcStoreEventRetrieval(configuration, datasource, serializer);
     }
 
     public JdbcStoreQuery(
@@ -48,8 +53,13 @@ public abstract class JdbcStoreQuery<T extends Aggregate> implements StoreRetrie
         return aggregate;
     }
 
-    private void ensureNotNull(String string) {
-        if (string == null || "".equals(string.trim())) {
+    @Override
+    public Event retrieve(UUID id) {
+        return eventRetrieval.retrieve(id);
+    }
+
+    private void ensureNotNull(String obj) {
+        if (obj == null || "".equals(obj.trim())) {
             throw new IllegalArgumentException("Argument cannot be null or empty");
         }
     }
@@ -59,9 +69,13 @@ public abstract class JdbcStoreQuery<T extends Aggregate> implements StoreRetrie
         EventList events = new EventList();
         try (ResultSet rs = ps.executeQuery()) {
             while(rs.next()) {
-                events.add(serializer.deserialize(rs.getString("eventType"), rs.getBinaryStream("data")));
+                events.add(deserialize(rs));
             }
         }
         aggregate.apply(events);
+    }
+
+    private Event deserialize(ResultSet rs) throws IOException, SQLException {
+        return serializer.deserialize(rs.getString("eventType"), rs.getBinaryStream("data"));
     }
 }
