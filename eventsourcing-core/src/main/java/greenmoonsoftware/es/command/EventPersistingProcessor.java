@@ -26,7 +26,7 @@ public class EventPersistingProcessor<T extends Aggregate> {
     public void process(Command command) {
         Aggregate aggregate = store.retrieve(command.getAggregateId());
         Collection<Event> newEvents = apply(command, aggregate);
-        newEvents.forEach(persister::persist);
+        persister.persist(newEvents);
         newEvents.forEach(eventBus::post);
     }
 

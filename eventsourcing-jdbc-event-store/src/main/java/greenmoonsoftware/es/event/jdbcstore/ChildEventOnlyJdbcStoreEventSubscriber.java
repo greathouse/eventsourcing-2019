@@ -1,10 +1,12 @@
 package greenmoonsoftware.es.event.jdbcstore;
 
 import greenmoonsoftware.es.event.Event;
+import greenmoonsoftware.es.event.EventSubscriber;
 
 import javax.sql.DataSource;
+import java.util.Collections;
 
-public class ChildEventOnlyJdbcStoreEventSubscriber extends JdbcStoreEventSubscriber {
+public class ChildEventOnlyJdbcStoreEventSubscriber extends JdbcStorePersister implements EventSubscriber {
     private final Class parentClass;
 
     public ChildEventOnlyJdbcStoreEventSubscriber(JdbcStoreConfiguration config,
@@ -24,5 +26,10 @@ public class ChildEventOnlyJdbcStoreEventSubscriber extends JdbcStoreEventSubscr
     @Override
     protected boolean shouldHandle(Event event) {
         return parentClass.isAssignableFrom(event.getClass());
+    }
+
+    @Override
+    public void onEvent(Event event) {
+        persist(Collections.singleton(event));
     }
 }

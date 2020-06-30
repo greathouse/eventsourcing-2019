@@ -2,27 +2,17 @@ package greenmoonsoftware.es.event.jdbcstore;
 
 import greenmoonsoftware.es.event.Event;
 import greenmoonsoftware.es.event.EventSubscriber;
-import greenmoonsoftware.es.store.StorePersister;
 
 import javax.sql.DataSource;
-import java.io.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
 
-public class JdbcStoreEventSubscriber implements EventSubscriber<Event>, StorePersister {
-    private final EventSerializer<Event> serilalizer;
-    private DataSource datasource;
-    private JdbcStoreConfiguration configuration;
+@Deprecated
+public class JdbcStoreEventSubscriber extends JdbcStorePersister implements EventSubscriber<Event> {
 
     public JdbcStoreEventSubscriber(
             JdbcStoreConfiguration config,
             DataSource ds,
             EventSerializer<Event> s) {
-        configuration = config;
-        datasource = ds;
-        serilalizer = s;
+        super(config, ds, s);
     }
 
     public JdbcStoreEventSubscriber(
@@ -36,36 +26,4 @@ public class JdbcStoreEventSubscriber implements EventSubscriber<Event>, StorePe
         persist(event);
     }
 
-    @Override
-    public void persist(Event event) {
-        if (!shouldHandle(event)) {
-            return ;
-        }
-        String sql = "insert into " + configuration.getTablename() + " (id, aggregateId, eventType, eventDateTime, data) " +
-                        "values (?,?,?,?,?)";
-        try (Connection con = datasource.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)
-        ) {
-            prepareAndExecuteStatement(event, ps);
-        }
-        catch (SQLException | IOException e) {
-            throw new RuntimeException(e);
-        }
-        catch (Throwable t) {
-            t.printStackTrace();
-        }
-    }
-
-    protected boolean shouldHandle(Event event) {
-        return true;
-    }
-
-    private void prepareAndExecuteStatement(Event event, PreparedStatement ps) throws SQLException, IOException {
-        ps.setString(1, event.getId().toString());
-        ps.setString(2, event.getAggregateId());
-        ps.setString(3, event.getType());
-        ps.setTimestamp(4, new Timestamp(event.getEventDateTime().toEpochMilli()));
-        ps.setBinaryStream(5, serilalizer.serialize(event));
-        ps.execute();
-    }
 }
