@@ -16,8 +16,8 @@ import java.util.UUID;
 
 public abstract class JdbcStoreQuery<T extends Aggregate> implements StoreRetrieval<T>, EventRetrieval {
     private final EventSerializer serializer;
-    private final DataSource datasource;
     private final JdbcStoreConfiguration configuration;
+    private final DataSource datasource;
     private final EventRetrieval eventRetrieval;
 
     public JdbcStoreQuery(
